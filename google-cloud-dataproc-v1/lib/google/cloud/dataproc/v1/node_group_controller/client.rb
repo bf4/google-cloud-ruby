@@ -18,6 +18,7 @@
 
 require "google/cloud/errors"
 require "google/cloud/dataproc/v1/node_groups_pb"
+require "google/iam/v1"
 
 module Google
   module Cloud
@@ -140,6 +141,12 @@ module Google
                 config.endpoint = @config.endpoint
               end
 
+              @iam_policy_client = Google::Iam::V1::IAMPolicy::Client.new do |config|
+                config.credentials = credentials
+                config.quota_project = @quota_project_id
+                config.endpoint = @config.endpoint
+              end
+
               @node_group_controller_stub = ::Gapic::ServiceStub.new(
                 ::Google::Cloud::Dataproc::V1::NodeGroupController::Stub,
                 credentials:  credentials,
@@ -155,6 +162,13 @@ module Google
             # @return [::Google::Cloud::Dataproc::V1::NodeGroupController::Operations]
             #
             attr_reader :operations_client
+
+            ##
+            # Get the associated client for mix-in of the IAMPolicy.
+            #
+            # @return [Google::Iam::V1::IAMPolicy::Client]
+            #
+            attr_reader :iam_policy_client
 
             # Service calls
 
@@ -223,14 +237,14 @@ module Google
             #   # Call the create_node_group method.
             #   result = client.create_node_group request
             #
-            #   # The returned object is of type Gapic::Operation. You can use this
-            #   # object to check the status of an operation, cancel it, or wait
-            #   # for results. Here is how to block until completion:
+            #   # The returned object is of type Gapic::Operation. You can use it to
+            #   # check the status of an operation, cancel it, or wait for results.
+            #   # Here is how to wait for a response.
             #   result.wait_until_done! timeout: 60
             #   if result.response?
             #     p result.response
             #   else
-            #     puts "Error!"
+            #     puts "No response received."
             #   end
             #
             def create_node_group request, options = nil
@@ -317,7 +331,7 @@ module Google
             #     The ID must contain only letters (a-z, A-Z), numbers (0-9),
             #     underscores (_), and hyphens (-). The maximum length is 40 characters.
             #   @param graceful_decommission_timeout [::Google::Protobuf::Duration, ::Hash]
-            #     Optional. Timeout for graceful YARN decommissioning. [Graceful
+            #     Optional. Timeout for graceful YARN decomissioning. [Graceful
             #     decommissioning]
             #     (https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/scaling-clusters#graceful_decommissioning)
             #     allows the removal of nodes from the Compute Engine node group
@@ -350,14 +364,14 @@ module Google
             #   # Call the resize_node_group method.
             #   result = client.resize_node_group request
             #
-            #   # The returned object is of type Gapic::Operation. You can use this
-            #   # object to check the status of an operation, cancel it, or wait
-            #   # for results. Here is how to block until completion:
+            #   # The returned object is of type Gapic::Operation. You can use it to
+            #   # check the status of an operation, cancel it, or wait for results.
+            #   # Here is how to wait for a response.
             #   result.wait_until_done! timeout: 60
             #   if result.response?
             #     p result.response
             #   else
-            #     puts "Error!"
+            #     puts "No response received."
             #   end
             #
             def resize_node_group request, options = nil

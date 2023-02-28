@@ -18,6 +18,7 @@
 
 require "google/cloud/errors"
 require "google/cloud/retail/v2/completion_service_pb"
+require "google/cloud/location"
 
 module Google
   module Cloud
@@ -147,6 +148,12 @@ module Google
                 config.endpoint = @config.endpoint
               end
 
+              @location_client = Google::Cloud::Location::Locations::Client.new do |config|
+                config.credentials = credentials
+                config.quota_project = @quota_project_id
+                config.endpoint = @config.endpoint
+              end
+
               @completion_service_stub = ::Gapic::ServiceStub.new(
                 ::Google::Cloud::Retail::V2::CompletionService::Stub,
                 credentials:  credentials,
@@ -162,6 +169,13 @@ module Google
             # @return [::Google::Cloud::Retail::V2::CompletionService::Operations]
             #
             attr_reader :operations_client
+
+            ##
+            # Get the associated client for mix-in of the Locations.
+            #
+            # @return [Google::Cloud::Location::Locations::Client]
+            #
+            attr_reader :location_client
 
             # Service calls
 
@@ -375,14 +389,14 @@ module Google
             #   # Call the import_completion_data method.
             #   result = client.import_completion_data request
             #
-            #   # The returned object is of type Gapic::Operation. You can use this
-            #   # object to check the status of an operation, cancel it, or wait
-            #   # for results. Here is how to block until completion:
+            #   # The returned object is of type Gapic::Operation. You can use it to
+            #   # check the status of an operation, cancel it, or wait for results.
+            #   # Here is how to wait for a response.
             #   result.wait_until_done! timeout: 60
             #   if result.response?
             #     p result.response
             #   else
-            #     puts "Error!"
+            #     puts "No response received."
             #   end
             #
             def import_completion_data request, options = nil

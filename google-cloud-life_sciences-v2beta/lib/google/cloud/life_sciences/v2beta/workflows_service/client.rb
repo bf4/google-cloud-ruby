@@ -175,11 +175,11 @@ module Google
             ##
             # Runs a pipeline.  The returned Operation's [metadata]
             # [google.longrunning.Operation.metadata] field will contain a
-            # {::Google::Cloud::LifeSciences::V2beta::Metadata google.cloud.lifesciences.v2beta.Metadata} object describing the status
-            # of the pipeline execution. The
+            # {::Google::Cloud::LifeSciences::V2beta::Metadata google.cloud.lifesciences.v2beta.Metadata}
+            # object describing the status of the pipeline execution. The
             # {::Google::Longrunning::Operation#response response} field will contain a
-            # {::Google::Cloud::LifeSciences::V2beta::RunPipelineResponse google.cloud.lifesciences.v2beta.RunPipelineResponse} object if the
-            # pipeline completes successfully.
+            # {::Google::Cloud::LifeSciences::V2beta::RunPipelineResponse google.cloud.lifesciences.v2beta.RunPipelineResponse}
+            # object if the pipeline completes successfully.
             #
             # **Note:** Before you can use this method, the *Life Sciences Service Agent*
             # must have access to your project. This is done automatically when the
@@ -243,14 +243,14 @@ module Google
             #   # Call the run_pipeline method.
             #   result = client.run_pipeline request
             #
-            #   # The returned object is of type Gapic::Operation. You can use this
-            #   # object to check the status of an operation, cancel it, or wait
-            #   # for results. Here is how to block until completion:
+            #   # The returned object is of type Gapic::Operation. You can use it to
+            #   # check the status of an operation, cancel it, or wait for results.
+            #   # Here is how to wait for a response.
             #   result.wait_until_done! timeout: 60
             #   if result.response?
             #     p result.response
             #   else
-            #     puts "Error!"
+            #     puts "No response received."
             #   end
             #
             def run_pipeline request, options = nil

@@ -255,7 +255,7 @@ module Google
             #     timestamp](https://cloud.google.com/pubsub/docs/replay-overview#seek_to_a_time)
             #     that is up to `message_retention_duration` in the past. If this field is
             #     not set, message retention is controlled by settings on individual
-            #     subscriptions. Cannot be more than 7 days or less than 10 minutes.
+            #     subscriptions. Cannot be more than 31 days or less than 10 minutes.
             #
             # @yield [response, operation] Access the result along with the RPC operation
             # @yieldparam response [::Google::Cloud::PubSub::V1::Topic]
@@ -636,13 +636,11 @@ module Google
             #   # Call the list_topics method.
             #   result = client.list_topics request
             #
-            #   # The returned object is of type Gapic::PagedEnumerable. You can
-            #   # iterate over all elements by calling #each, and the enumerable
-            #   # will lazily make API calls to fetch subsequent pages. Other
-            #   # methods are also available for managing paging directly.
-            #   result.each do |response|
+            #   # The returned object is of type Gapic::PagedEnumerable. You can iterate
+            #   # over elements, and API calls will be issued to fetch pages as needed.
+            #   result.each do |item|
             #     # Each element is of type ::Google::Cloud::PubSub::V1::Topic.
-            #     p response
+            #     p item
             #   end
             #
             def list_topics request, options = nil

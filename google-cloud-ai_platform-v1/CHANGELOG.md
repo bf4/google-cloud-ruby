@@ -1,5 +1,22 @@
 # Changelog
 
+### 0.19.0 (2023-02-13)
+
+#### Features
+
+* Support for IndexEndpoint#private_service_connect_config 
+* Support for MetricSpec#safety_config 
+* Support for Model#original_model_info 
+* Support for NasJob management RPCs ([#20117](https://github.com/googleapis/google-cloud-ruby/issues/20117)) 
+* Support for NasTrialDetail RPCs 
+* Support for the copy_model RPC 
+
+### 0.18.0 (2023-01-19)
+
+#### Features
+
+* Support for enabling access to the customized dashboard in training chief container ([#20037](https://github.com/googleapis/google-cloud-ruby/issues/20037)) 
+
 ### 0.17.0 (2023-01-11)
 
 #### Features

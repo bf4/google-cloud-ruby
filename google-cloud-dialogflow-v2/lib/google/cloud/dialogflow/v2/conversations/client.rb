@@ -348,13 +348,11 @@ module Google
             #   # Call the list_conversations method.
             #   result = client.list_conversations request
             #
-            #   # The returned object is of type Gapic::PagedEnumerable. You can
-            #   # iterate over all elements by calling #each, and the enumerable
-            #   # will lazily make API calls to fetch subsequent pages. Other
-            #   # methods are also available for managing paging directly.
-            #   result.each do |response|
+            #   # The returned object is of type Gapic::PagedEnumerable. You can iterate
+            #   # over elements, and API calls will be issued to fetch pages as needed.
+            #   result.each do |item|
             #     # Each element is of type ::Google::Cloud::Dialogflow::V2::Conversation.
-            #     p response
+            #     p item
             #   end
             #
             def list_conversations request, options = nil
@@ -635,13 +633,11 @@ module Google
             #   # Call the list_messages method.
             #   result = client.list_messages request
             #
-            #   # The returned object is of type Gapic::PagedEnumerable. You can
-            #   # iterate over all elements by calling #each, and the enumerable
-            #   # will lazily make API calls to fetch subsequent pages. Other
-            #   # methods are also available for managing paging directly.
-            #   result.each do |response|
+            #   # The returned object is of type Gapic::PagedEnumerable. You can iterate
+            #   # over elements, and API calls will be issued to fetch pages as needed.
+            #   result.each do |item|
             #     # Each element is of type ::Google::Cloud::Dialogflow::V2::Message.
-            #     p response
+            #     p item
             #   end
             #
             def list_messages request, options = nil
@@ -701,7 +697,7 @@ module Google
             #   @param options [::Gapic::CallOptions, ::Hash]
             #     Overrides the default settings for this call, e.g, timeout, retries, etc. Optional.
             #
-            # @overload suggest_conversation_summary(conversation: nil, latest_message: nil, context_size: nil)
+            # @overload suggest_conversation_summary(conversation: nil, latest_message: nil, context_size: nil, assist_query_params: nil)
             #   Pass arguments to `suggest_conversation_summary` via keyword arguments. Note that at
             #   least one keyword argument is required. To specify no parameters, or to keep all
             #   the default parameter values, pass an empty Hash as a request object (see above).
@@ -721,6 +717,8 @@ module Google
             #     Max number of messages prior to and including
             #     [latest_message] to use as context when compiling the
             #     suggestion. By default 500 and at most 1000.
+            #   @param assist_query_params [::Google::Cloud::Dialogflow::V2::AssistQueryParameters, ::Hash]
+            #     Parameters for a human assist query.
             #
             # @yield [response, operation] Access the result along with the RPC operation
             # @yieldparam response [::Google::Cloud::Dialogflow::V2::SuggestConversationSummaryResponse]

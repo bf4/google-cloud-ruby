@@ -18,6 +18,7 @@
 
 require "google/cloud/errors"
 require "google/cloud/datacatalog/v1/datacatalog_pb"
+require "google/iam/v1"
 
 module Google
   module Cloud
@@ -176,6 +177,12 @@ module Google
               @quota_project_id = @config.quota_project
               @quota_project_id ||= credentials.quota_project_id if credentials.respond_to? :quota_project_id
 
+              @iam_policy_client = Google::Iam::V1::IAMPolicy::Client.new do |config|
+                config.credentials = credentials
+                config.quota_project = @quota_project_id
+                config.endpoint = @config.endpoint
+              end
+
               @data_catalog_stub = ::Gapic::ServiceStub.new(
                 ::Google::Cloud::DataCatalog::V1::DataCatalog::Stub,
                 credentials:  credentials,
@@ -184,6 +191,13 @@ module Google
                 interceptors: @config.interceptors
               )
             end
+
+            ##
+            # Get the associated client for mix-in of the IAMPolicy.
+            #
+            # @return [Google::Iam::V1::IAMPolicy::Client]
+            #
+            attr_reader :iam_policy_client
 
             # Service calls
 
@@ -284,13 +298,11 @@ module Google
             #   # Call the search_catalog method.
             #   result = client.search_catalog request
             #
-            #   # The returned object is of type Gapic::PagedEnumerable. You can
-            #   # iterate over all elements by calling #each, and the enumerable
-            #   # will lazily make API calls to fetch subsequent pages. Other
-            #   # methods are also available for managing paging directly.
-            #   result.each do |response|
+            #   # The returned object is of type Gapic::PagedEnumerable. You can iterate
+            #   # over elements, and API calls will be issued to fetch pages as needed.
+            #   result.each do |item|
             #     # Each element is of type ::Google::Cloud::DataCatalog::V1::SearchCatalogResult.
-            #     p response
+            #     p item
             #   end
             #
             def search_catalog request, options = nil
@@ -775,13 +787,11 @@ module Google
             #   # Call the list_entry_groups method.
             #   result = client.list_entry_groups request
             #
-            #   # The returned object is of type Gapic::PagedEnumerable. You can
-            #   # iterate over all elements by calling #each, and the enumerable
-            #   # will lazily make API calls to fetch subsequent pages. Other
-            #   # methods are also available for managing paging directly.
-            #   result.each do |response|
+            #   # The returned object is of type Gapic::PagedEnumerable. You can iterate
+            #   # over elements, and API calls will be issued to fetch pages as needed.
+            #   result.each do |item|
             #     # Each element is of type ::Google::Cloud::DataCatalog::V1::EntryGroup.
-            #     p response
+            #     p item
             #   end
             #
             def list_entry_groups request, options = nil
@@ -1406,13 +1416,11 @@ module Google
             #   # Call the list_entries method.
             #   result = client.list_entries request
             #
-            #   # The returned object is of type Gapic::PagedEnumerable. You can
-            #   # iterate over all elements by calling #each, and the enumerable
-            #   # will lazily make API calls to fetch subsequent pages. Other
-            #   # methods are also available for managing paging directly.
-            #   result.each do |response|
+            #   # The returned object is of type Gapic::PagedEnumerable. You can iterate
+            #   # over elements, and API calls will be issued to fetch pages as needed.
+            #   result.each do |item|
             #     # Each element is of type ::Google::Cloud::DataCatalog::V1::Entry.
-            #     p response
+            #     p item
             #   end
             #
             def list_entries request, options = nil
@@ -2838,13 +2846,11 @@ module Google
             #   # Call the list_tags method.
             #   result = client.list_tags request
             #
-            #   # The returned object is of type Gapic::PagedEnumerable. You can
-            #   # iterate over all elements by calling #each, and the enumerable
-            #   # will lazily make API calls to fetch subsequent pages. Other
-            #   # methods are also available for managing paging directly.
-            #   result.each do |response|
+            #   # The returned object is of type Gapic::PagedEnumerable. You can iterate
+            #   # over elements, and API calls will be issued to fetch pages as needed.
+            #   result.each do |item|
             #     # Each element is of type ::Google::Cloud::DataCatalog::V1::Tag.
-            #     p response
+            #     p item
             #   end
             #
             def list_tags request, options = nil

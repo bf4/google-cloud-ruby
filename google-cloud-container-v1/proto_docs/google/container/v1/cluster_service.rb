@@ -217,7 +217,9 @@ module Google
         # @!attribute [rw] image_type
         #   @return [::String]
         #     The image type to use for this node. Note that for a given image type,
-        #     the latest version of it will be used.
+        #     the latest version of it will be used. Please see
+        #     https://cloud.google.com/kubernetes-engine/docs/concepts/node-images for
+        #     available image types.
         # @!attribute [rw] labels
         #   @return [::Google::Protobuf::Map{::String => ::String}]
         #     The map of Kubernetes labels (key/value pairs) to be applied to each node.
@@ -546,7 +548,7 @@ module Google
           end
         end
 
-        # Kubernetes taint is comprised of three fields: key, value, and effect. Effect
+        # Kubernetes taint is composed of three fields: key, value, and effect. Effect
         # can only be one of three types:  NoSchedule, PreferNoSchedule or NoExecute.
         #
         # See
@@ -2017,7 +2019,9 @@ module Google
         #     - "-": picks the Kubernetes master version
         # @!attribute [rw] image_type
         #   @return [::String]
-        #     Required. The desired image type for the node pool.
+        #     Required. The desired image type for the node pool. Please see
+        #     https://cloud.google.com/kubernetes-engine/docs/concepts/node-images for
+        #     available image types.
         # @!attribute [rw] name
         #   @return [::String]
         #     The name (project, location, cluster, node pool) of the node pool to
@@ -2739,7 +2743,9 @@ module Google
         #     [Output only] Server-defined URL for the resource.
         # @!attribute [rw] version
         #   @return [::String]
-        #     The version of the Kubernetes of this node.
+        #     The version of Kubernetes running on this NodePool's nodes. If unspecified,
+        #     it defaults as described
+        #     [here](https://cloud.google.com/kubernetes-engine/versioning#specifying_node_version).
         # @!attribute [rw] instance_group_urls
         #   @return [::Array<::String>]
         #     [Output only] The resource URLs of the [managed instance
@@ -3344,8 +3350,7 @@ module Google
         #     information, read [how to specify min CPU
         #     platform](https://cloud.google.com/compute/docs/instances/specify-min-cpu-platform).
         #     This field is deprecated, min_cpu_platform should be specified using
-        #     https://cloud.google.com/requested-min-cpu-platform label selector on the
-        #     pod.
+        #     `cloud.google.com/requested-min-cpu-platform` label selector on the pod.
         #     To unset the min cpu platform field pass "automatic"
         #     as field value.
         # @!attribute [rw] disk_size_gb
@@ -3373,7 +3378,9 @@ module Google
         #     https://cloud.google.com/compute/docs/disks/customer-managed-encryption
         # @!attribute [rw] image_type
         #   @return [::String]
-        #     The image type to use for NAP created node.
+        #     The image type to use for NAP created node. Please see
+        #     https://cloud.google.com/kubernetes-engine/docs/concepts/node-images for
+        #     available image types.
         class AutoprovisioningNodePoolDefaults
           include ::Google::Protobuf::MessageExts
           extend ::Google::Protobuf::MessageExts::ClassMethods
@@ -4659,7 +4666,8 @@ module Google
 
         # Strategy used for node pool update.
         module NodePoolUpdateStrategy
-          # Default value.
+          # Default value if unset. GKE internally defaults the update strategy to
+          # SURGE for unspecified strategies.
           NODE_POOL_UPDATE_STRATEGY_UNSPECIFIED = 0
 
           # blue-green upgrade.
