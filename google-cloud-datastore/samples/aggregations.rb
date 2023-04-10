@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require "google/cloud/datastore"
+
 # [START datastore_count_aggregation_query_with_filters]
 def count_aggregation_query_with_filters
   datastore = Google::Cloud::Datastore.new
@@ -24,7 +26,7 @@ def count_aggregation_query_with_filters
   
   aggregate_query_result = datastore.run_aggregation_query aggregate_query
 
-  puts aggregate_query_result.get
+  # puts aggregate_query_result.get
 end
 # [END datastore_count_aggregation_query_with_filters]
 

@@ -14,6 +14,7 @@
 
 require_relative "helper"
 require_relative "../sample"
+require_relative "../aggregations"
 
 describe "Datastore sample", :datastore do
   let(:datastore) { Google::Cloud::Datastore.new }
@@ -324,6 +325,14 @@ describe "Datastore sample", :datastore do
     refute properties_by_kind.empty?
     assert_includes properties_by_kind["Task"], "priority"
     assert_includes properties_by_kind["Task"], "tag"
+  end
+
+  focus; it "support count aggregation with filters" do
+    aggregate_query_result = count_aggregation_query_with_filters
+    assert_equal aggregate_query_result.get, 3
+    # query = property_filter
+
+    # aggregate_query =query.aggregate_qu
   end
 
   def assert_basic_task task
