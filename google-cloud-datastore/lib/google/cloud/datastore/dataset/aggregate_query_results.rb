@@ -31,7 +31,7 @@ module Google
         #   query.kind("Task")
         #        .where("done", "=", false)
         #
-        #   Create an aggregate query
+        #   # Create an aggregate query
         #   aggregate_query = query.aggregate_query
         #                          .add_count
         #
@@ -63,7 +63,7 @@ module Google
           #   query.kind("Task")
           #        .where("done", "=", false)
           #
-          #   Create an aggregate query
+          #   # Create an aggregate query
           #   aggregate_query = query.aggregate_query
           #                          .add_count
           #
@@ -79,7 +79,7 @@ module Google
           #   query.kind("Task")
           #        .where("done", "=", false)
           #
-          #   Create an aggregate query
+          #   # Create an aggregate query
           #   aggregate_query = query.aggregate_query
           #                          .add_count aggregate_alias: 'total'
           #
