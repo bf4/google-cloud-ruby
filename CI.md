@@ -104,7 +104,7 @@ Alternatively, if you run `toys ci` from within a particular library's directory
 A few additional flags of note:
 
 * Normally, a `bundle install` is run implicitly before the tests in each gem directory. You can disable this by passing `--no-bundle`. You can run a `bundle update` instead by passing `--bundle-update`.
-* It's possible to install or update the bundle without actually performing any tests by passing `--bundle` or `--bundle-update`, and not providing any other test selection flag. For example, you can update the bundles for all gems using `toys ci --all-gems --bundle-update`.
+* Its possible to install or update the bundle without actually performing any tests by passing `--bundle` or `--bundle-update`, and not providing any other test selection flag. For example, you can update the bundles for all gems using `toys ci --all-gems --bundle-update`.
 * If you run acceptance or sample tests, you will need to provide a project ID and credentials. You can do this by setting the `GOOGLE_CLOUD_PROJECT` and `GOOGLE_APPLICATION_CREDENTIALS` environment variables, or you can set the `--project=` and `--keyfile=` flags.
 * Get online help by passing `--help` (i.e. `toys ci --help`).
 * You can pass `--verbose` (or `-v`) to turn on verbose logging.
