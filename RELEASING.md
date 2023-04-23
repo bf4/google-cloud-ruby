@@ -10,14 +10,14 @@ requests](https://github.com/googleapis/google-cloud-ruby/pulls) for a
 release have been merged and all [Kokoro builds](#checking-the-status-of-kokoro-builds) are
 green, you may create a release as follows:
 
-1. In root directory of the project, switch to the master branch, ensure that
+1. In root directory of the project, switch to the main branch, ensure that
    you have no changes, and pull from the [project
    repo](https://github.com/googleapis/google-cloud-ruby).
 
     ```sh
-    $ git checkout master
+    $ git checkout main
     $ git status
-    $ git pull <remote> master
+    $ git pull <remote> main
     ```
 
 1. Review the report of changes for all gems.
@@ -28,17 +28,17 @@ green, you may create a release as follows:
 
 1. Choose a gem to release based on the changes report from the previous step.
    If there are changes to
-   [google-cloud-errors](https://github.com/googleapis/google-cloud-ruby/tree/master/google-cloud-errors),
-   [google-cloud-core](https://github.com/googleapis/google-cloud-ruby/tree/master/google-cloud-core),
+   [google-cloud-errors](https://github.com/googleapis/google-cloud-ruby/tree/main/google-cloud-errors),
+   [google-cloud-core](https://github.com/googleapis/google-cloud-ruby/tree/main/google-cloud-core),
    and/or
-   [stackdriver-core](https://github.com/googleapis/google-cloud-ruby/tree/master/stackdriver-core),
+   [stackdriver-core](https://github.com/googleapis/google-cloud-ruby/tree/main/stackdriver-core),
    be sure to release them first, in the order listed. Release
-   [google-cloud](https://github.com/googleapis/google-cloud-ruby/blob/master/google-cloud)
+   [google-cloud](https://github.com/googleapis/google-cloud-ruby/blob/main/google-cloud)
    and
-   [stackdriver](https://github.com/googleapis/google-cloud-ruby/blob/master/stackdriver)
+   [stackdriver](https://github.com/googleapis/google-cloud-ruby/blob/main/stackdriver)
    last, in case of dependency changes. (See steps 13 and 14, below.)
 
-1. In the root directory of the project, from the master branch, review the changes for the gem since its
+1. In the root directory of the project, from the main branch, review the changes for the gem since its
    last release.
 
     ```sh
@@ -67,7 +67,7 @@ green, you may create a release as follows:
 
 1. If your gem is new, ensure that a nav link and a main entry including
    code example have been added to the [top-level
-   README](https://github.com/googleapis/google-cloud-ruby/blob/master/README.md).
+   README](https://github.com/googleapis/google-cloud-ruby/blob/main/README.md).
 
 1. Python 3.6 or 3.7 is required. If you do not have Python 3.6 or 3.7 installed we recommend [this guide](https://docs.python-guide.org/starting/installation/#installation-guides).
 
@@ -125,17 +125,17 @@ There are extra steps required to add a new gem to the top-level package and the
 for the `google-cloud` gem.
 
 1. Add the gem to
-   [`Gemfile`](https://github.com/googleapis/google-cloud-ruby/blob/master/Gemfile).
+   [`Gemfile`](https://github.com/googleapis/google-cloud-ruby/blob/main/Gemfile).
 1. Add the gem to
-   [`google-cloud/Gemfile`](https://github.com/googleapis/google-cloud-ruby/blob/master/google-cloud/Gemfile).
+   [`google-cloud/Gemfile`](https://github.com/googleapis/google-cloud-ruby/blob/main/google-cloud/Gemfile).
 1. Add the gem to
-   [`google-cloud/google-cloud.gemspec`](https://github.com/googleapis/google-cloud-ruby/blob/master/google-cloud/google-cloud.gemspec).
+   [`google-cloud/google-cloud.gemspec`](https://github.com/googleapis/google-cloud-ruby/blob/main/google-cloud/google-cloud.gemspec).
 1. Add the gem to
-   [`gcloud/Gemfile`](https://github.com/googleapis/google-cloud-ruby/blob/master/gcloud/Gemfile).
+   [`gcloud/Gemfile`](https://github.com/googleapis/google-cloud-ruby/blob/main/gcloud/Gemfile).
 
 ## Checking the status of Kokoro builds
 
-1. On the [commits](https://github.com/googleapis/google-cloud-ruby/commits/master) page, find the commit you expect to have launched a Kokoro build.
+1. On the [commits](https://github.com/googleapis/google-cloud-ruby/commits/main) page, find the commit you expect to have launched a Kokoro build.
 
 1. To the right of your commit, there should be either a red x, or a green checkmark. If it's the green checkmark, your build was a success, and no further inspection is necessary. If it's the red x, click it to find out why the build failed.
 
@@ -166,7 +166,7 @@ for the `google-cloud` gem.
 
 1. Add a tag. The tag should be of the format `#{gem_name}/v#{version_number}`.
 
-1. To the right of the tag and "@" symbol, there will be a dropdown with "Target: master. Click the dropdown, select the "Recent Commits" tab, and find and select the commit that was your merged PR.
+1. To the right of the tag and "@" symbol, there will be a dropdown with "Target: main. Click the dropdown, select the "Recent Commits" tab, and find and select the commit that was your merged PR.
 
 1. Add a title in the format `Release #{gem_name} #{version_number}`.
 
