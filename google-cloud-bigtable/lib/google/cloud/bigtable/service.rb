@@ -20,6 +20,7 @@ require "google/cloud/bigtable/errors"
 require "google/cloud/bigtable/credentials"
 require "google/cloud/bigtable/v2"
 require "google/cloud/bigtable/admin/v2"
+require "concurrent"
 
 module Google
   module Cloud
@@ -29,7 +30,7 @@ module Google
       class Service
         # @private
         attr_accessor :project_id, :credentials, :host, :host_admin, :timeout
-
+      
         # @private
         # Creates a new Service instance.
         #
@@ -55,8 +56,30 @@ module Google
           @host = host
           @host_admin = host_admin
           @timeout = timeout
+          @bigtable_clients = {}
+          refresh_timer_task = Concurrent::TimerTask.new(execution_interval: 2700) do
+            refresh_bigtable_clients
+          end
+          refresh_timer_task.execute
         end
 
+        def refresh_bigtable_clients
+          @bigtable_clients.each do |key, value|
+            client = V2::Bigtable::Client.new do |config|
+              config.credentials = credentials if credentials
+              config.timeout = timeout if timeout
+              config.endpoint = host if host
+              config.lib_name = "gccl"
+              config.lib_version = Google::Cloud::Bigtable::VERSION
+              config.metadata = { "google-cloud-resource-prefix": "projects/#{@project_id}" }
+            end
+            client.ping_and_warm(**{
+              name: key.split("_")[0],
+              app_profile_id: key.split("_")[1]
+            })
+            @bigtable_clients[key] = client
+          end
+        end
         def instances
           return mocked_instances if mocked_instances
           @instances ||= Admin::V2::BigtableInstanceAdmin::Client.new do |config|
@@ -69,7 +92,7 @@ module Google
           end
         end
         attr_accessor :mocked_instances
-
+      
         def tables
           return mocked_tables if mocked_tables
           @tables ||= Admin::V2::BigtableTableAdmin::Client.new do |config|
@@ -83,16 +106,24 @@ module Google
         end
         attr_accessor :mocked_tables
 
-        def client
+        def client table_name, app_profile_id
           return mocked_client if mocked_client
-          @client ||= V2::Bigtable::Client.new do |config|
-            config.credentials = credentials if credentials
-            config.timeout = timeout if timeout
-            config.endpoint = host if host
-            config.lib_name = "gccl"
-            config.lib_version = Google::Cloud::Bigtable::VERSION
-            config.metadata = { "google-cloud-resource-prefix": "projects/#{@project_id}" }
+          instance_id = instance_name_from_table_name table_name
+          if @bigtable_clients["#{instance_id}_#{app_profile_id}"].nil?
+            @bigtable_clients["#{instance_id}_#{app_profile_id}"] = V2::Bigtable::Client.new do |config|
+              config.credentials = credentials if credentials
+              config.timeout = timeout if timeout
+              config.endpoint = host if host
+              config.lib_name = "gccl"
+              config.lib_version = Google::Cloud::Bigtable::VERSION
+              config.metadata = { "google-cloud-resource-prefix": "projects/#{@project_id}" }
+            end
+            @bigtable_clients["#{instance_id}_#{app_profile_id}"].ping_and_warm(**{
+                                                                                 name: instance_id,
+                                                                                 app_profile_id: app_profile_id
+                                                                               })
           end
+          @bigtable_clients["#{instance_id}_#{app_profile_id}"]
         end
         attr_accessor :mocked_client
 
@@ -649,7 +680,7 @@ module Google
         end
 
         def read_rows instance_id, table_id, app_profile_id: nil, rows: nil, filter: nil, rows_limit: nil
-          client.read_rows(
+          client(table_path(instance_id, table_id), app_profile_id).read_rows(
             **{
               table_name:     table_path(instance_id, table_id),
               rows:           rows,
@@ -661,11 +692,11 @@ module Google
         end
 
         def sample_row_keys table_name, app_profile_id: nil
-          client.sample_row_keys table_name: table_name, app_profile_id: app_profile_id
+          client(table_path(instance_id, table_id), app_profile_id).sample_row_keys table_name: table_name, app_profile_id: app_profile_id
         end
 
         def mutate_row table_name, row_key, mutations, app_profile_id: nil
-          client.mutate_row(
+          client(table_path(instance_id, table_id), app_profile_id).mutate_row(
             **{
               table_name:     table_name,
               app_profile_id: app_profile_id,
@@ -676,7 +707,7 @@ module Google
         end
 
         def mutate_rows table_name, entries, app_profile_id: nil
-          client.mutate_rows(
+          client(table_path(instance_id, table_id), app_profile_id).mutate_rows(
             **{
               table_name:     table_name,
               app_profile_id: app_profile_id,
@@ -691,7 +722,7 @@ module Google
                                  predicate_filter: nil,
                                  true_mutations: nil,
                                  false_mutations: nil
-          client.check_and_mutate_row(
+          client(table_path(instance_id, table_id), app_profile_id).check_and_mutate_row(
             **{
               table_name:       table_name,
               app_profile_id:   app_profile_id,
@@ -704,7 +735,7 @@ module Google
         end
 
         def read_modify_write_row table_name, row_key, rules, app_profile_id: nil
-          client.read_modify_write_row(
+          client(table_path(instance_id, table_id), app_profile_id).read_modify_write_row(
             **{
               table_name:     table_name,
               app_profile_id: app_profile_id,
@@ -836,7 +867,11 @@ module Google
         def table_path instance_id, table_id
           Admin::V2::BigtableTableAdmin::Paths.table_path project: project_id, instance: instance_id, table: table_id
         end
-
+          
+        def instance_name_from_table_name table_name
+          table_name.split("/").take(4).join("/")
+        end
+          
         ##
         # Creates a formatted app profile path.
         #

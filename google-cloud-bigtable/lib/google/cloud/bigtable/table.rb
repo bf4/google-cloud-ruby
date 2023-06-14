@@ -72,11 +72,13 @@ module Google
         # @private
         #
         # Creates a new Table instance.
-        def initialize grpc, service, view:
+        def initialize grpc, service, view:, app_profile_id:
           @grpc = grpc
           @service = service
           raise ArgumentError, "view must not be nil" if view.nil?
           @loaded_views = Set[view]
+          @app_profile_id = app_profile_id
+          @service.client @grpc.name, @app_profile_id
         end
 
         ##
@@ -659,8 +661,8 @@ module Google
         # @param view [Symbol] View type.
         # @return [Google::Cloud::Bigtable::Table]
         #
-        def self.from_grpc grpc, service, view:
-          new grpc, service, view: view
+        def self.from_grpc grpc, service, view:, app_profile_id:
+          new grpc, service, view: view, app_profile_id: app_profile_id
         end
 
         # @private
