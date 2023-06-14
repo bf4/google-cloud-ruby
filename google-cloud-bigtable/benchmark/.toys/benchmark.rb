@@ -63,12 +63,17 @@ def read_row_benchmark table
   output_to_csv csv_file, ["Request No.", "RPC call", "Start time(ms)", "End Time(ms)", "Elapsed time(ms)"]
   iter = 1
   loop do
-    start_time = Time.now
-    table.read_row SecureRandom.hex(4).to_s
-    end_time = Time.now
-    output_to_csv csv_file, [iter, "read_row", start_time.strftime('%s%L'), end_time.strftime('%s%L'), ((end_time - start_time) * 1000).round(3)]
-    iter += 1
-    sleep 1 / qps
+    begin
+      start_time = Time.now
+      table.read_row SecureRandom.hex(4).to_s
+      end_time = Time.now
+      output_to_csv csv_file, [iter, "read_row", start_time.strftime('%s%L'), end_time.strftime('%s%L'), ((end_time - start_time) * 1000).round(3)]
+    rescue StandardError => e
+      puts e
+    ensure
+      iter += 1
+      sleep 1 / qps
+    end
   end
   puts "Successfully ran read_row benchmarking. Please find your output log at #{csv_file}", :bold, :cyan
 end
