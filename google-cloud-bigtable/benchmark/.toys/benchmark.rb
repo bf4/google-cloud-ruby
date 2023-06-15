@@ -42,32 +42,39 @@ def run
   require "securerandom"
   require "csv"
   require "concurrent"
-
+  require "google/cloud/bigquery"
 
   # Create a bigtable client to run the benchmarking
   bigtable = Google::Cloud::Bigtable.new
   table = bigtable.table instance_id, table_name, perform_lookup: true
 
   @csv_writer = Concurrent::ThreadPoolExecutor.new max_threads: 5, max_queue: 0
+  @bigquery_uploader = Concurrent::ThreadPoolExecutor.new max_threads: 5, max_queue: 0
   @mutex = Mutex.new
 
   read_row_benchmark table
 end
 
 def read_row_benchmark table
-  csv_file = if ENV["GOOGLE_CLOUD_BIGTABLE_BENCHMARKING"] == "dev"
-               "bigtable_bechmarking_read_row_#{qps.to_s}_dev.csv"
-             else
-               "bigtable_bechmarking_read_row_#{qps.to_s}.csv"
-             end
-  output_to_csv csv_file, ["Request No.", "RPC call", "Start time(ms)", "End Time(ms)", "Elapsed time(ms)"]
+  table_name = "biguery-benchmarking-read-row"
+  if ENV["GOOGLE_CLOUD_BIGTABLE_BENCHMARKING"] == "dev"
+    table_name += "-dev"
+  end
+  bq_table = reset_bigquery_table table_name
   iter = 1
   loop do
     begin
       start_time = Time.now
       table.read_row SecureRandom.hex(4).to_s
       end_time = Time.now
-      output_to_csv csv_file, [iter, "read_row", start_time.strftime('%s%L'), end_time.strftime('%s%L'), ((end_time - start_time) * 1000).round(3)]
+      data = {
+        "RequestNumber" => iter,
+        "RPC" => "read_row",
+        "StartTime" => start_time.strftime('%s%L').to_s,
+        "EndTime" => end_time.strftime('%s%L').to_s,
+        "ElapsedTime" => ((end_time - start_time) * 1000).round(3)
+      }
+      upload_to_bigquery bq_table, data
     rescue StandardError => e
       puts e
     ensure
@@ -77,6 +84,41 @@ def read_row_benchmark table
   end
   puts "Successfully ran read_row benchmarking. Please find your output log at #{csv_file}", :bold, :cyan
 end
+
+def upload_to_bigquery table, data
+  Concurrent::Promises.future_on @bigquery_uploader, table, data do |table, data|
+    @mutex.synchronize do
+      begin
+        table.reload!
+        table.insert data
+      rescue StandardError => e
+        puts "Upload failed : #{e}"
+        sleep 10
+        retry
+      end
+    end
+  end
+end
+
+def reset_bigquery_table table_name
+  bigquery = Google::Cloud::Bigquery.new project_id: "diptanshu-lex"
+  dataset = bigquery.dataset "Benchmarking_logs"
+  table = dataset.table table_name
+  table&.delete
+  table = dataset.create_table table_name do |t|
+    t.schema do |s|
+      s.integer "RequestNumber"
+      s.string "RPC"
+      s.bignumeric "StartTime"
+      s.bignumeric "EndTime"
+      s.float "ElapsedTime"
+    end
+  end
+  return table if table.exists?
+  puts "not able to reset the table"
+  exit
+end
+
 
 def output_to_csv csv_file, result
   Concurrent::Promises.future_on @csv_writer, csv_file, result do |csv_file, result|

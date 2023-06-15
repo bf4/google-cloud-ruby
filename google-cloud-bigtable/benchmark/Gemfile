@@ -20,5 +20,6 @@ else
   gem "google-cloud-bigtable"
 end
 
+gem "google-cloud-bigquery"
 gem "concurrent-ruby"
 
