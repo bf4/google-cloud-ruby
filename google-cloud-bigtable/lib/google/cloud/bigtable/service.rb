@@ -77,6 +77,7 @@ module Google
               name: key.split("_")[0],
               app_profile_id: key.split("_")[1]
             })
+            @bigtable_clients = {}
             @bigtable_clients[key] = client
           end
         end

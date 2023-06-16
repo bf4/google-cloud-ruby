@@ -16,22 +16,6 @@
 
 desc "Run performance benchmarking"
 
-flag :instance_id, "--instance_id=INSTANCE_ID" do |f|
-  f.default "temp-diptanshu"
-  f.accept String
-  f.desc "Instance id of the bigtable"
-end
-flag :table_name, "--table_name=TABLE_NAME" do |f|
-  f.default "test-1"
-  f.accept String
-  f.desc "Bigtable name"
-end
-flag :qps, "--qps=QPS" do |f|
-  f.default 0.1
-  f.accept Float
-  f.desc "Query per second"
-end
-
 include :terminal, styled: true
 include :bundler
 include :fileutils
@@ -39,48 +23,50 @@ include :fileutils
 def run
 
   require "google/cloud/bigtable"
-  require "securerandom"
   require "csv"
   require "concurrent"
-  require "google/cloud/bigquery"
 
   # Create a bigtable client to run the benchmarking
-  bigtable = Google::Cloud::Bigtable.new
-  table = bigtable.table instance_id, table_name, perform_lookup: true
 
   @csv_writer = Concurrent::ThreadPoolExecutor.new max_threads: 5, max_queue: 0
   @bigquery_uploader = Concurrent::ThreadPoolExecutor.new max_threads: 5, max_queue: 0
   @mutex = Mutex.new
+  @csv_name = "biguery-benchmarking-read-row.csv"
 
-  read_row_benchmark table
+  read_row_benchmark
 end
 
-def read_row_benchmark table
-  table_name = "biguery-benchmarking-read-row"
-  if ENV["GOOGLE_CLOUD_BIGTABLE_BENCHMARKING"] == "dev"
-    table_name += "-dev"
-  end
-  # bq_table = reset_bigquery_table table_name
+def read_row_benchmark
+  bigtable = Google::Cloud::Bigtable.new
+  table = bigtable.table "temp-diptanshu", "test-3", perform_lookup: true
+  bigtable = Google::Cloud::Bigtable.new
+  table_1 = bigtable.table "temp-diptanshu", "test-4", perform_lookup: true
+
   iter = 1
   loop do
     begin
       start_time = Time.now
       table.read_row SecureRandom.hex(4).to_s
       end_time = Time.now
-      data = {
-        "RequestNumber" => iter,
-        "RPC" => "read_row",
-        "StartTime" => start_time.strftime('%s%L').to_s,
-        "EndTime" => end_time.strftime('%s%L').to_s,
-        "ElapsedTime" => ((end_time - start_time) * 1000).round(3)
-      }
-      pp data["ElapsedTime"]
-      # upload_to_bigquery bq_table, data
+      sleep 2
+      data = [
+        iter,
+        "read_row",
+        start_time.strftime('%s%L').to_s,
+        end_time.strftime('%s%L').to_s,
+        ((end_time - start_time) * 1000).round(3)
+      ]
+      start_time = Time.now
+      table_1.read_row SecureRandom.hex(4).to_s
+      end_time = Time.now
+      data << ((end_time - start_time) * 1000).round(3)
+      output_to_csv data
+      pp data
     rescue StandardError => e
       puts e
     ensure
       iter += 1
-      sleep 1 / qps
+      sleep 8
     end
   end
   puts "Successfully ran read_row benchmarking. Please find your output log at #{csv_file}", :bold, :cyan
@@ -121,10 +107,10 @@ def reset_bigquery_table table_name
 end
 
 
-def output_to_csv csv_file, result
-  Concurrent::Promises.future_on @csv_writer, csv_file, result do |csv_file, result|
+def output_to_csv result
+  Concurrent::Promises.future_on @csv_writer, result do |result|
     @mutex.synchronize do
-      CSV.open csv_file, "ab" do |csv|
+      CSV.open "biguery-benchmarking-read-row.csv", "ab" do |csv|
         csv << result
       end
     end
