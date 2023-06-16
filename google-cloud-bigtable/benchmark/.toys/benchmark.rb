@@ -48,7 +48,7 @@ def run
   bigtable = Google::Cloud::Bigtable.new
   table = bigtable.table instance_id, table_name, perform_lookup: true
 
-  @csv_writer = Concurrent::ThreadPoolExecutor.new max_threads: 5, max_queue: 0
+  @bigtable_reader = Concurrent::ThreadPoolExecutor.new max_threads: 5, max_queue: 0
   @bigquery_uploader = Concurrent::ThreadPoolExecutor.new max_threads: 5, max_queue: 0
   @mutex = Mutex.new
 
@@ -62,26 +62,28 @@ def read_row_benchmark table
   end
   # bq_table = reset_bigquery_table table_name
   iter = 1
+  @start_time = Time.now
   loop do
-    begin
-      start_time = Time.now
-      table.read_row SecureRandom.hex(4).to_s
-      end_time = Time.now
-      data = {
-        "RequestNumber" => iter,
-        "RPC" => "read_row",
-        "StartTime" => start_time.strftime('%s%L').to_s,
-        "EndTime" => end_time.strftime('%s%L').to_s,
-        "ElapsedTime" => ((end_time - start_time) * 1000).round(3)
-      }
-      pp data["ElapsedTime"]
-      # upload_to_bigquery bq_table, data
-    rescue StandardError => e
-      puts e
-    ensure
-      iter += 1
-      sleep 1 / qps
+    Concurrent::Promises.future_on @bigtable_reader, iter do |iter|
+      begin
+        start_time = Time.now
+        table.read_row SecureRandom.hex(4).to_s
+        end_time = Time.now
+        data = {
+          "RequestNumber" => iter,
+          "RPC" => "read_row",
+          "StartTime" => ((start_time - @start_time)/60),
+          "EndTime" => ((end_time - @start_time)/60),
+          "ElapsedTime" => ((end_time - start_time) * 1000).round(3)
+        }
+        pp data
+        # upload_to_bigquery bq_table, data
+      rescue StandardError => e
+        puts e
+      end
     end
+    iter += 1
+    sleep 1 / qps
   end
   puts "Successfully ran read_row benchmarking. Please find your output log at #{csv_file}", :bold, :cyan
 end
@@ -110,8 +112,8 @@ def reset_bigquery_table table_name
     t.schema do |s|
       s.integer "RequestNumber"
       s.string "RPC"
-      s.bignumeric "StartTime"
-      s.bignumeric "EndTime"
+      s.float "StartTime"
+      s.float "EndTime"
       s.float "ElapsedTime"
     end
   end

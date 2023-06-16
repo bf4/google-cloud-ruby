@@ -38,9 +38,10 @@ end
 
 def read_row_benchmark
   bigtable = Google::Cloud::Bigtable.new
+  @start_time = Time.now
   table = bigtable.table "temp-diptanshu", "test-3", perform_lookup: true
-  bigtable = Google::Cloud::Bigtable.new
-  table_1 = bigtable.table "temp-diptanshu", "test-4", perform_lookup: true
+  sleep 100
+  table_1 = bigtable.table "temp-instance-1", "test-4", perform_lookup: true
 
   iter = 1
   loop do
@@ -48,12 +49,11 @@ def read_row_benchmark
       start_time = Time.now
       table.read_row SecureRandom.hex(4).to_s
       end_time = Time.now
-      sleep 2
       data = [
         iter,
         "read_row",
-        start_time.strftime('%s%L').to_s,
-        end_time.strftime('%s%L').to_s,
+        ((start_time - @start_time) / 60),
+        ((end_time - @start_time) / 60),
         ((end_time - start_time) * 1000).round(3)
       ]
       start_time = Time.now
@@ -63,10 +63,10 @@ def read_row_benchmark
       output_to_csv data
       pp data
     rescue StandardError => e
-      puts e
+      pp e
     ensure
       iter += 1
-      sleep 8
+      sleep 10
     end
   end
   puts "Successfully ran read_row benchmarking. Please find your output log at #{csv_file}", :bold, :cyan
