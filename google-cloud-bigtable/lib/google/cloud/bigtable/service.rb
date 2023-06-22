@@ -21,6 +21,7 @@ require "google/cloud/bigtable/credentials"
 require "google/cloud/bigtable/v2"
 require "google/cloud/bigtable/admin/v2"
 require "concurrent"
+require "grpc"
 
 module Google
   module Cloud
@@ -60,13 +61,13 @@ module Google
           refresh_timer_task = Concurrent::TimerTask.new(execution_interval: 2700) do
             refresh_bigtable_clients
           end
-          # refresh_timer_task.execute
+          refresh_timer_task.execute
         end
 
         def refresh_bigtable_clients
           @bigtable_clients.each do |key, value|
             client = V2::Bigtable::Client.new do |config|
-              config.credentials = credentials if credentials
+              config.credentials = get_channel
               config.timeout = timeout if timeout
               config.endpoint = host if host
               config.lib_name = "gccl"
@@ -77,10 +78,12 @@ module Google
               name: key.split("_")[0],
               app_profile_id: key.split("_")[1]
             })
-            @bigtable_clients = {}
+            old_client = @bigtable_clients[key]
             @bigtable_clients[key] = client
+            old_client.config.credentials.close
           end
         end
+
         def instances
           return mocked_instances if mocked_instances
           @instances ||= Admin::V2::BigtableInstanceAdmin::Client.new do |config|
@@ -107,12 +110,29 @@ module Google
         end
         attr_accessor :mocked_tables
 
+        def get_channel
+          channel_args = {}
+          if channel_args['grpc.primary_user_agent'].nil?
+            channel_args['grpc.primary_user_agent'] = ''
+          else
+            channel_args['grpc.primary_user_agent'] += ' '
+          end
+          channel_args['grpc.primary_user_agent'] += "grpc-ruby/1.57.0.dev"
+          channel_args["grpc.use_local_subchannel_pool"] = 1
+          updater_proc = credentials.updater_proc if credentials.respond_to? :updater_proc
+          updater_proc ||= credentials if credentials.is_a? Proc
+          raise ArgumentError, "invalid credentials (#{credentials.class})" if updater_proc.nil?
+          call_creds = ::GRPC::Core::CallCredentials.new updater_proc
+          chan_creds = ::GRPC::Core::ChannelCredentials.new.compose call_creds
+          GRPC::Core::Channel.new host, channel_args, chan_creds
+        end
+
         def client table_name, app_profile_id
           return mocked_client if mocked_client
           instance_id = instance_name_from_table_name table_name
           if @bigtable_clients["#{instance_id}_#{app_profile_id}"].nil?
             @bigtable_clients["#{instance_id}_#{app_profile_id}"] = V2::Bigtable::Client.new do |config|
-              config.credentials = credentials if credentials
+              config.credentials = get_channel
               config.timeout = timeout if timeout
               config.endpoint = host if host
               config.lib_name = "gccl"

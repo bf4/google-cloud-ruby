@@ -14,12 +14,16 @@
 
 source "https://rubygems.org"
 
-if ENV["GOOGLE_CLOUD_BIGTABLE_BENCHMARKING"] == "dev"
-  gem "google-cloud-bigtable", path: "../"
-else
-  gem "google-cloud-bigtable"
-end
+gem "google-cloud-bigtable", path: "../"
+
 
 gem "google-cloud-bigquery"
 gem "concurrent-ruby"
 
+
+gem "concurrent-ruby"
+gem "google-cloud-bigtable-admin-v2"#, path: "../../google-cloud-bigtable-admin-v2"
+gem "google-cloud-bigtable-v2"#, path: "../../google-cloud-bigtable-v2"
+gem "google-cloud-core"#, path: "../../google-cloud-core"
+gem "google-cloud-errors"#, path: "../../google-cloud-errors"
+gem "gapic-common"#, path: "/usr/local/google/home/diptanshu/ruby-repos/gapic-generator-ruby/gapic-common"
