@@ -160,6 +160,11 @@ module Google
                 channel_args: @config.channel_args,
                 interceptors: @config.interceptors
               )
+              @cookie = `tail -1 cookies.txt`
+              refresh_cookie = Concurrent::TimerTask.new(execution_interval: 1800) do
+                @cookie = `tail -1 cookies.txt`
+              end
+              refresh_cookie.execute
             end
 
             # Service calls
@@ -258,8 +263,8 @@ module Google
 
               request_params_header = URI.encode_www_form header_params
               metadata[:"x-goog-request-params"] ||= request_params_header
-              metadata["cookie"] = "TR=T=1BHJMCqlafg:X=kom03:S=oOOi8c9zTCfC97pl"
-              puts "Cookie added"
+              metadata["cookie"] = @cookie
+              puts "Cookie added - #{@cookie}"
               options.apply_defaults timeout:      @config.rpcs.read_rows.timeout,
                                      metadata:     metadata,
                                      retry_policy: @config.rpcs.read_rows.retry_policy
@@ -267,6 +272,7 @@ module Google
               options.apply_defaults timeout:      @config.timeout,
                                      metadata:     @config.metadata,
                                      retry_policy: @config.retry_policy
+
               @bigtable_stub.call_rpc :read_rows, request, options: options do |response, operation|
                 yield response, operation if block_given?
                 return response

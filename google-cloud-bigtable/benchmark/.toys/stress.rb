@@ -46,7 +46,7 @@ def run
   bigtable = Google::Cloud::Bigtable.new
   table = bigtable.table instance_id, table_name, perform_lookup: true
 
-  @bigtable_reader = Concurrent::ThreadPoolExecutor.new max_threads: 110, max_queue: 0
+  @bigtable_reader = Concurrent::ThreadPoolExecutor.new max_threads: 4000, max_queue: 0
   read_row_benchmark table
 end
 
@@ -65,7 +65,7 @@ def read_row_benchmark table
         "EndTime" => ((end_time - @start_time)/60),
         "ElapsedTime" => ((end_time - start_time) * 1000).round(3)
       }
-      pp data
+      pp data["ElapsedTime"]
     end
     futures << future
   end
