@@ -61,6 +61,7 @@ def read_row_benchmark table
     table_name += "-dev"
   end
   bq_table = reset_bigquery_table table_name
+  # $stdout.reopen("#{SecureRandom.hex(4)}.txt","a")
   iter = 1
   @start_time = Time.now
   loop do
@@ -76,6 +77,7 @@ def read_row_benchmark table
           "EndTime" => ((end_time - @start_time)/60),
           "ElapsedTime" => ((end_time - start_time) * 1000).round(3)
         }
+        pp data
         upload_to_bigquery bq_table, data
       rescue StandardError => e
         puts e

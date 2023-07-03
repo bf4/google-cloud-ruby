@@ -15,15 +15,8 @@
 source "https://rubygems.org"
 
 gem "google-cloud-bigtable", path: "../"
-
-
 gem "google-cloud-bigquery"
 gem "concurrent-ruby"
+gem "google-cloud-bigtable-v2", path: "../../google-cloud-bigtable-v2"
 
 
-gem "concurrent-ruby"
-gem "google-cloud-bigtable-admin-v2"#, path: "../../google-cloud-bigtable-admin-v2"
-gem "google-cloud-bigtable-v2"#, path: "../../google-cloud-bigtable-v2"
-gem "google-cloud-core"#, path: "../../google-cloud-core"
-gem "google-cloud-errors"#, path: "../../google-cloud-errors"
-gem "gapic-common"#, path: "/usr/local/google/home/diptanshu/ruby-repos/gapic-generator-ruby/gapic-common"

@@ -80,7 +80,7 @@ module Google
             })
             old_client = @bigtable_clients[key]
             @bigtable_clients[key] = client
-            old_client.config.credentials.close
+            old_client.configure.credentials.close
           end
         end
 
@@ -124,7 +124,8 @@ module Google
           raise ArgumentError, "invalid credentials (#{credentials.class})" if updater_proc.nil?
           call_creds = ::GRPC::Core::CallCredentials.new updater_proc
           chan_creds = ::GRPC::Core::ChannelCredentials.new.compose call_creds
-          GRPC::Core::Channel.new host, channel_args, chan_creds
+          channel = GRPC::Core::Channel.new host, channel_args, chan_creds
+          channel
         end
 
         def client table_name, app_profile_id
@@ -702,7 +703,9 @@ module Google
         end
 
         def read_rows instance_id, table_id, app_profile_id: nil, rows: nil, filter: nil, rows_limit: nil
-          client(table_path(instance_id, table_id), app_profile_id).read_rows(
+          # result = `netstat -p | grep "#{$$.to_s}" | awk '{printf("%s ",$4)}'`
+          # pp "Start : #{result}"
+          res = client(table_path(instance_id, table_id), app_profile_id).read_rows(
             **{
               table_name:     table_path(instance_id, table_id),
               rows:           rows,
@@ -711,6 +714,9 @@ module Google
               app_profile_id: app_profile_id
             }
           )
+          # result = `netstat -p | grep "#{$$.to_s}" | awk '{printf("%s ",$4)}'`
+          # pp "End : #{result}"
+          res
         end
 
         def sample_row_keys table_name, app_profile_id: nil
