@@ -263,8 +263,8 @@ module Google
 
               request_params_header = URI.encode_www_form header_params
               metadata[:"x-goog-request-params"] ||= request_params_header
-              metadata["cookie"] = @cookie
-              puts "Cookie added - #{@cookie}"
+              # metadata["cookie"] = @cookie
+              # puts "Cookie added - #{@cookie}"
               options.apply_defaults timeout:      @config.rpcs.read_rows.timeout,
                                      metadata:     metadata,
                                      retry_policy: @config.rpcs.read_rows.retry_policy

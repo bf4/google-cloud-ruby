@@ -140,7 +140,6 @@ module Google
               config.lib_version = Google::Cloud::Bigtable::VERSION
               config.metadata = { "google-cloud-resource-prefix": "projects/#{@project_id}" }
             end
-            puts "#{instance_id}_#{app_profile_id}"
             @bigtable_clients["#{instance_id}_#{app_profile_id}"].ping_and_warm(**{
                                                                                  name: instance_id,
                                                                                  app_profile_id: app_profile_id

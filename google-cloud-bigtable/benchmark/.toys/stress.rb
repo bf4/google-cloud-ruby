@@ -37,40 +37,77 @@ include :bundler
 include :fileutils
 
 def run
-
   require "google/cloud/bigtable"
   require "securerandom"
   require "concurrent"
 
-  # Create a bigtable client to run the benchmarking
-  bigtable = Google::Cloud::Bigtable.new
-  table = bigtable.table instance_id, table_name, perform_lookup: true
+  @mutex = Mutex.new
+  @table_count = 10
+  # tables = []
 
-  @bigtable_reader = Concurrent::ThreadPoolExecutor.new max_threads: 4000, max_queue: 0
-  read_row_benchmark table
+  tables = (1..@table_count).map do
+    bigtable = Google::Cloud::Bigtable.new
+    bigtable.table(instance_id, table_name, perform_lookup: true)
+  end
+
+  # puts `netstat -p | grep "#{$$.to_s}" | awk '{printf("%s ",$4)}'`
+
+  array_1 = read_row_benchmark tables
+  array_2 = read_row_benchmark tables, spread_requests: true
+  # array_0 = read_row_benchmark tables, concurrent: false
+
+  t = Time.now.to_s
+
+  # $stdout.reopen("#{t}_sequential.txt","a")
+  # array_0.each do |arr|
+  #   puts "#{arr[2]}"
+  # end
+
+  $stdout.reopen("#{t}_concurrent_single.txt","a")
+  array_1.each do |arr|
+    puts "#{arr[2]}"
+  end
+
+  $stdout.reopen("#{t}_concurrent_multiple.txt","a")
+  array_2.each do |arr|
+    puts "#{arr[2]}"
+  end
+
 end
 
-def read_row_benchmark table
-  $stdout.reopen("#{SecureRandom.hex(4)}.txt","a")
-  @start_time = Time.now
+def read_row_benchmark tables, concurrent: true, spread_requests: false
+  requests = 1000
+  array_timings = Array.new(requests-1)
+
+  threads = if concurrent
+              4999
+            else
+              1
+            end
+  bigtable_reader = Concurrent::ThreadPoolExecutor.new max_threads: threads, max_queue: 0
   futures = []
-  (1..10).each do
-    future = Concurrent::Promises.future_on @bigtable_reader do
-      start_time = Time.now
+  @start_time = Time.now
+  (1..requests).each do |i|
+    future = Concurrent::Promises.future_on bigtable_reader do
+      if spread_requests
+        table = tables[i%@table_count]
+      else
+        table = tables[0]
+      end
+      t = []
+      t << Time.now.to_f
       table.read_row SecureRandom.hex(4).to_s
-      end_time = Time.now
-      data = {
-        "RPC" => "read_row",
-        "StartTime" => ((start_time - @start_time)/60),
-        "EndTime" => ((end_time - @start_time)/60),
-        "ElapsedTime" => ((end_time - start_time) * 1000).round(3)
-      }
-      pp data["ElapsedTime"]
+      t << Time.now.to_f
+      t << (t[1] - t[0])*1000
+      array_timings[i-1] = t
     end
     futures << future
   end
   futures.each do |future|
     future.wait!
   end
-  puts "Successfully ran read_row stress", :bold, :cyan
+  @end_time = Time.now
+  puts "Successfully ran stress test in #{@end_time - @start_time} with concurrent - #{concurrent} and spread_requests - #{spread_requests}"
+  bigtable_reader.kill
+  array_timings
 end

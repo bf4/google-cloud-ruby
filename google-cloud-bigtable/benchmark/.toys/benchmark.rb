@@ -52,6 +52,12 @@ def run
   @bigquery_uploader = Concurrent::ThreadPoolExecutor.new max_threads: 5, max_queue: 0
   @mutex = Mutex.new
 
+  refresh_timer_task = Concurrent::TimerTask.new(execution_interval: 30) do
+    result = `netstat -p | grep "#{$$.to_s}" | awk '{printf("%s ",$4)}'`
+    puts "Ports in use : #{result}"
+  end
+  refresh_timer_task.execute
+
   read_row_benchmark table
 end
 
