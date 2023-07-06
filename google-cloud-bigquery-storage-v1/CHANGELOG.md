@@ -1,5 +1,17 @@
 # Release History
 
+### 0.20.0 (2023-06-23)
+
+#### Features
+
+* add estimated_total_physical_file_size for TableReadOptions 
+
+### 0.19.1 (2023-06-06)
+
+#### Bug Fixes
+
+* Don't use self-signed JWT credentials if the global configuration endpoint has been modified 
+
 ### 0.19.0 (2023-05-31)
 
 #### Features

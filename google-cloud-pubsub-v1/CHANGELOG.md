@@ -1,5 +1,17 @@
 # Release History
 
+### 0.17.2 (2023-06-27)
+
+#### Documentation
+
+* Clarify naming pattern for Storage's filename suffix ([#22451](https://github.com/googleapis/google-cloud-ruby/issues/22451)) 
+
+### 0.17.1 (2023-06-06)
+
+#### Bug Fixes
+
+* Don't use self-signed JWT credentials if the global configuration endpoint has been modified 
+
 ### 0.17.0 (2023-05-31)
 
 #### Features

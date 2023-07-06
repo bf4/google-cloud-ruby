@@ -1,5 +1,27 @@
 # Release History
 
+### 0.23.0 (2023-06-16)
+
+#### Features
+
+* add API for GPU driver installation config ([#22377](https://github.com/googleapis/google-cloud-ruby/issues/22377)) 
+* add SecurityPostureConfig API field to allow customers to enable GKE Security Posture capabilities for their clusters 
+* add workloadPolicyConfig API field to allow customer enable NET_ADMIN capability for their autopilot clusters 
+
+### 0.22.0 (2023-06-06)
+
+#### Features
+
+* Support enabling FQDN Network Policy for a Cluster 
+* Support for best-effort provisioning in a NodePool 
+* Support for check_autopilot_compatibility ([#21907](https://github.com/googleapis/google-cloud-ruby/issues/21907)) 
+* Support for Kubernetes Beta APIs in a Cluster 
+* Support parameters for node pools to be backed by shared sole tenant node groups 
+* Uses binary protobuf definitions for better forward compatibility ([#21673](https://github.com/googleapis/google-cloud-ruby/issues/21673)) 
+#### Bug Fixes
+
+* Don't use self-signed JWT credentials if the global configuration endpoint has been modified 
+
 ### 0.21.1 (2023-05-19)
 
 #### Documentation
