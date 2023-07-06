@@ -14,11 +14,9 @@
 
 source "https://rubygems.org"
 
-if ENV["GOOGLE_CLOUD_BIGTABLE_BENCHMARKING"] == "dev"
-  gem "google-cloud-bigtable", path: "../"
-else
-  gem "google-cloud-bigtable"
-end
-
+gem "google-cloud-bigtable", path: "../"
+gem "google-cloud-bigquery"
 gem "concurrent-ruby"
+gem "google-cloud-bigtable-v2", path: "../../google-cloud-bigtable-v2"
+
 

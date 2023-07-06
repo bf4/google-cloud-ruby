@@ -35,6 +35,7 @@ module Google
             # @private
             attr_reader :bigtable_stub
 
+
             ##
             # Configure the Bigtable Client class.
             #
@@ -159,6 +160,11 @@ module Google
                 channel_args: @config.channel_args,
                 interceptors: @config.interceptors
               )
+              @cookie = `tail -1 cookies.txt`
+              refresh_cookie = Concurrent::TimerTask.new(execution_interval: 1800) do
+                @cookie = `tail -1 cookies.txt`
+              end
+              refresh_cookie.execute
             end
 
             # Service calls
@@ -246,7 +252,6 @@ module Google
                 lib_name: @config.lib_name, lib_version: @config.lib_version,
                 gapic_version: ::Google::Cloud::Bigtable::V2::VERSION
               metadata[:"x-goog-user-project"] = @quota_project_id if @quota_project_id
-
               header_params = {}
               if request.table_name &&
                  %r{^projects/[^/]+/instances/[^/]+/tables/[^/]+/?$}.match?(request.table_name)
@@ -258,7 +263,8 @@ module Google
 
               request_params_header = URI.encode_www_form header_params
               metadata[:"x-goog-request-params"] ||= request_params_header
-
+              # metadata["cookie"] = @cookie
+              # puts "Cookie added - #{@cookie}"
               options.apply_defaults timeout:      @config.rpcs.read_rows.timeout,
                                      metadata:     metadata,
                                      retry_policy: @config.rpcs.read_rows.retry_policy
