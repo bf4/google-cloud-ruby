@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-desc "Run performance benchmarking"
+desc "Run stress test"
 
 flag :instance_id, "--instance_id=INSTANCE_ID" do |f|
   f.default "temp-diptanshu"
@@ -26,11 +26,7 @@ flag :table_name, "--table_name=TABLE_NAME" do |f|
   f.accept String
   f.desc "Bigtable name"
 end
-flag :qps, "--qps=QPS" do |f|
-  f.default 0.1
-  f.accept Float
-  f.desc "Query per second"
-end
+
 
 include :terminal, styled: true
 include :bundler
@@ -40,66 +36,89 @@ def run
   require "google/cloud/bigtable"
   require "securerandom"
   require "concurrent"
+  require 'csv'
 
-  @mutex = Mutex.new
-  @table_count = 10
-  # tables = []
+
+  @table_count = 5
 
   tables = (1..@table_count).map do
     bigtable = Google::Cloud::Bigtable.new
-    bigtable.table(instance_id, table_name, perform_lookup: true)
+    table = bigtable.table instance_id, table_name, perform_lookup: true
+    table.read_row SecureRandom.hex(4).to_s
+    table
   end
 
-  # puts `netstat -p | grep "#{$$.to_s}" | awk '{printf("%s ",$4)}'`
+  puts "Starting stress testing"
 
-  array_1 = read_row_benchmark tables
-  array_2 = read_row_benchmark tables, spread_requests: true
-  # array_0 = read_row_benchmark tables, concurrent: false
+  timings_individual_single_100 = []
+  timings_individual_multiple_100 = []
+  timings_individual_single_500 = []
+  timings_individual_multiple_500 = []
+  total_timings = []
+  (1..100).each do |i|
+    timing_individual_single_100, total_timing_single_100 = read_row_stress_test tables
+    timing_individual_multiple_100, total_timing_multiple_100 = read_row_stress_test tables, spread_requests: true
+    timing_individual_single_500, total_timing_single_500 = read_row_stress_test tables, threads: 500
+    timing_individual_multiple_500, total_timing_multiple_500 = read_row_stress_test tables, threads: 500, spread_requests: true
+    timings_individual_single_100 << timing_individual_single_100
+    timings_individual_multiple_100 << timing_individual_multiple_100
+    timings_individual_single_500 << timing_individual_single_500
+    timings_individual_multiple_500 << timing_individual_multiple_500
+    total_timings << [total_timing_single_100, total_timing_multiple_100, total_timing_single_500, total_timing_multiple_500]
+  end
 
   t = Time.now.to_s
 
-  # $stdout.reopen("#{t}_sequential.txt","a")
-  # array_0.each do |arr|
-  #   puts "#{arr[2]}"
-  # end
-
-  $stdout.reopen("#{t}_concurrent_single.txt","a")
-  array_1.each do |arr|
-    puts "#{arr[2]}"
+  CSV.open "#{t}_100_single.csv", "w" do |csv|
+    timings_individual_single_100.transpose.each do |arr|
+      csv << arr
+    end
   end
 
-  $stdout.reopen("#{t}_concurrent_multiple.txt","a")
-  array_2.each do |arr|
-    puts "#{arr[2]}"
+  CSV.open "#{t}_100_multiple.csv", "w" do |csv|
+    timings_individual_multiple_100.transpose.each do |arr|
+      csv << arr
+    end
+  end
+
+  CSV.open "#{t}_500_single.csv", "w" do |csv|
+    timings_individual_single_500.transpose.each do |arr|
+      csv << arr
+    end
+  end
+
+  CSV.open "#{t}_500_multiple.csv", "w" do |csv|
+    timings_individual_multiple_500.transpose.each do |arr|
+      csv << arr
+    end
+  end
+
+  CSV.open "#{t}_total_timings.csv", "w" do |csv|
+    total_timings.each do |arr|
+      csv << arr
+    end
   end
 
 end
 
-def read_row_benchmark tables, concurrent: true, spread_requests: false
-  requests = 1000
-  array_timings = Array.new(requests-1)
-
-  threads = if concurrent
-              4999
-            else
-              1
-            end
+def read_row_stress_test tables, threads: 100, spread_requests: false
+  requests = 5000
+  array_timings = Array.new requests - 1
   bigtable_reader = Concurrent::ThreadPoolExecutor.new max_threads: threads, max_queue: 0
   futures = []
   @start_time = Time.now
   (1..requests).each do |i|
     future = Concurrent::Promises.future_on bigtable_reader do
-      if spread_requests
-        table = tables[i%@table_count]
-      else
-        table = tables[0]
-      end
+      table = if spread_requests
+                tables[i % @table_count]
+              else
+                tables[0]
+              end
       t = []
       t << Time.now.to_f
       table.read_row SecureRandom.hex(4).to_s
       t << Time.now.to_f
-      t << (t[1] - t[0])*1000
-      array_timings[i-1] = t
+      array_timings[i - 1] = ((t[1] - t[0]) * 1000)
     end
     futures << future
   end
@@ -107,7 +126,8 @@ def read_row_benchmark tables, concurrent: true, spread_requests: false
     future.wait!
   end
   @end_time = Time.now
-  puts "Successfully ran stress test in #{@end_time - @start_time} with concurrent - #{concurrent} and spread_requests - #{spread_requests}"
+  elapsed_time = @end_time - @start_time
+  puts "Successfully ran stress test in #{@end_time - @start_time} with threads - #{threads} and spread_requests - #{spread_requests}"
   bigtable_reader.kill
-  array_timings
+  return array_timings, elapsed_time
 end
